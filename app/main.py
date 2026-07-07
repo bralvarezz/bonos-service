@@ -22,6 +22,9 @@ from pydantic import BaseModel, Field
 from .auth import usuario_actual
 from .db import conexion, dict_cursor, esperar_bd, init_schema
 
+INICIO = time.time()   
+READY_MAX_MEM_PERCENT = float(os.getenv("READY_MAX_MEM_PERCENT", "90"))
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
