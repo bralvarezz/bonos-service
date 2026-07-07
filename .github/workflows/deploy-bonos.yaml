@@ -8,10 +8,13 @@ on:
 env:
   AWS_REGION: us-east-1
   CLUSTER_NAME: casino-eks 
+  
+jobs:
 
   deploy:
     name: Build, push y deploy a EKS
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
+    needs: test      #Si test falla, esto no se ejecuta
     steps:
       - name: 1. Descargar el codigo del repo
         uses: actions/checkout@v4
