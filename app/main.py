@@ -11,6 +11,8 @@ Comparte la base de datos y el JWT con casino-backend. Permite:
 Prefijo de rutas: /api/bonos  (para que nginx pueda enrutar por prefijo).
 """
 import os
+import time
+import psutil
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -85,6 +87,24 @@ def mis_bonos(usuario: dict = Depends(usuario_actual)):
                 (usuario["id"],),
             )
             return {"reclamados": cur.fetchall()}
+        
+@app.get("/live")
+def live():
+    """Liveness: el proceso esta vivo (no depende de nadie externo)."""
+    return {"alive": True, "uptime_segundos": round(time.time() - INICIO, 1)}
+
+
+@app.get("/ready")
+def ready():
+    """Readiness basada en el uso real de CPU y memoria."""
+    cpu = psutil.cpu_percent(interval=0.1)
+    memoria = psutil.virtual_memory().percent
+    if memoria > READY_MAX_MEM_PERCENT:
+        raise HTTPException(
+            status_code=503,
+            detail={"ready": False, "cpu_%": cpu, "memoria_%": memoria, "umbral_%": READY_MAX_MEM_PERCENT},
+        )
+    return {"ready": True, "cpu_%": cpu, "memoria_%": memoria}
 
 
 @app.post("/api/bonos/{codigo}/reclamar", status_code=201)
